@@ -1,26 +1,20 @@
-// src/components/manager/TaskForm.tsx
 import { useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
-import { createTask } from '../../services/taskService';
+import axios from 'axios';
 import { useState, useEffect } from 'react';
 import { toast } from 'react-toastify';
-
-// Dummy user list (Replace with actual API call if needed)
-const USERS = [
-  { email: 'alice@example.com' },
-  { email: 'bob@example.com' },
-  { email: 'charlie@example.com' },
-];
+import { useAuth } from '../../context/AuthContext';
 
 const schema = yup.object().shape({
+  title: yup.string().required('Title is required'),
   description: yup.string().required('Description is required'),
-  estimatedHours: yup
+  timeSpent: yup
     .number()
     .typeError('Estimated Hours must be a number')
     .positive('Must be positive')
     .required('Estimated Hours is required'),
-  assignedTo: yup.string().email('Invalid email').required('Assigned To is required'),
+  assignedTo: yup.string().required('Assigned To is required'),
   date: yup.string().required('Date is required'),
 });
 
@@ -34,22 +28,58 @@ const TaskForm = () => {
     resolver: yupResolver(schema),
   });
 
-  const [users, setUsers] = useState<{ email: string }[]>([]);
+  const { user } = useAuth();
+
+  const [users, setUsers] = useState<{ _id: string; email: string }[]>([]);
+  const [loadingUsers, setLoadingUsers] = useState(true);
 
   useEffect(() => {
-    // Ideally, fetch from API
-    setUsers(USERS);
-  }, []);
+    const fetchUsers = async () => {
+      if (!user?.token) {
+        setLoadingUsers(false);
+        return;
+      }
+      setLoadingUsers(true);
+      try {
+        const res = await fetch('/api/users', {
+          headers: {
+            Authorization: `Bearer ${user.token}`,
+          },
+        });
+        if (!res.ok) throw new Error('Failed to fetch users');
+        const data = await res.json();
+        setUsers(data);
+      } catch {
+        toast.error('Failed to load users');
+      } finally {
+        setLoadingUsers(false);
+      }
+    };
+
+    fetchUsers();
+  }, [user?.token]);
+
+  // createTask defined inside component to access user token
+  const createTask = async (task: any) => {
+    if (!user?.token) throw new Error('User not authenticated');
+
+    const response = await axios.post('/api/tasks', task, {
+      headers: {
+        Authorization: `Bearer ${user.token}`,
+      },
+    });
+    return response.data;
+  };
 
   const onSubmit = async (data: any) => {
     try {
       await createTask({
         ...data,
-        estimatedHours: parseFloat(data.estimatedHours),
+        timeSpent: parseFloat(data.timeSpent),
       });
       toast.success('✅ Task assigned successfully!');
       reset();
-    } catch (err) {
+    } catch {
       toast.error('❌ Error assigning task. Please try again.');
     }
   };
@@ -57,6 +87,15 @@ const TaskForm = () => {
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="bg-white p-4 rounded shadow space-y-4 mb-4">
       <h2 className="text-xl font-semibold">Assign New Task</h2>
+
+      <div>
+        <input
+          {...register('title')}
+          placeholder="Task Title"
+          className="w-full p-2 border rounded"
+        />
+        {errors.title && <p className="text-red-600 text-sm">{errors.title.message}</p>}
+      </div>
 
       <div>
         <input
@@ -69,31 +108,36 @@ const TaskForm = () => {
 
       <div>
         <input
-          {...register('estimatedHours')}
+          {...register('timeSpent')}
           placeholder="Estimated Hours"
           className="w-full p-2 border rounded"
           type="number"
+          step="0.1"
         />
-        {errors.estimatedHours && (
-          <p className="text-red-600 text-sm">{errors.estimatedHours.message}</p>
+        {errors.timeSpent && (
+          <p className="text-red-600 text-sm">{errors.timeSpent.message}</p>
         )}
       </div>
 
       <div>
-        <select
-          {...register('assignedTo')}
-          className="w-full p-2 border rounded bg-white"
-          defaultValue=""
-        >
-          <option value="" disabled>
-            Select user to assign
-          </option>
-          {users.map((user) => (
-            <option key={user.email} value={user.email}>
-              {user.email}
+        {loadingUsers ? (
+          <p>Loading users...</p>
+        ) : (
+          <select
+            {...register('assignedTo')}
+            className="w-full p-2 border rounded bg-white"
+            defaultValue=""
+          >
+            <option value="" disabled>
+              Select user to assign
             </option>
-          ))}
-        </select>
+            {users.map((user) => (
+              <option key={user._id} value={user._id}>
+                {user.email}
+              </option>
+            ))}
+          </select>
+        )}
         {errors.assignedTo && (
           <p className="text-red-600 text-sm">{errors.assignedTo.message}</p>
         )}
@@ -106,9 +150,9 @@ const TaskForm = () => {
 
       <button
         type="submit"
-        disabled={isSubmitting}
+        disabled={isSubmitting || loadingUsers}
         className={`bg-green-600 text-white py-2 px-4 rounded hover:bg-green-700 ${
-          isSubmitting ? 'opacity-50 cursor-not-allowed' : ''
+          isSubmitting || loadingUsers ? 'opacity-50 cursor-not-allowed' : ''
         }`}
       >
         {isSubmitting ? 'Assigning...' : 'Assign Task'}

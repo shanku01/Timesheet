@@ -15,7 +15,7 @@ export const login = async (req, res) => {
       expiresIn: '1d',
     });
 
-    res.json({ token, user: { name: user.name, email: user.email, role: user.role } });
+    res.json({ token, user: { userId: user._id, name: user.name, email: user.email, role: user.role } });
   } catch (err) {
     res.status(500).json({ msg: 'Server error' });
   }

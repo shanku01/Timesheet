@@ -3,6 +3,7 @@ import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import TaskForm from '../components/manager/TaskForm';
 import TaskList from '../components/manager/TaskList';
+import ErrorBoundary from '../components/manager/ErrorBoundary';
 
 const ManagerDashboard = () => {
   const { logout } = useAuth();
@@ -24,7 +25,9 @@ const ManagerDashboard = () => {
       </div>
 
       <TaskForm />
-      <TaskList />
+      <ErrorBoundary>
+        <TaskList />
+      </ErrorBoundary>
     </div>
   );
 };

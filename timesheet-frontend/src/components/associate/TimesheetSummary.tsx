@@ -1,5 +1,6 @@
-// src/components/associate/TimesheetSummary.tsx
 import React, { useEffect, useState } from 'react';
+import axios from 'axios';
+import { useAuth } from '../../context/AuthContext';
 
 interface SummaryEntry {
   taskTitle: string;
@@ -7,7 +8,7 @@ interface SummaryEntry {
 }
 
 interface Props {
-  selectedDate: string;
+  selectedDate?: string; // optional now
 }
 
 const TimesheetSummary: React.FC<Props> = ({ selectedDate }) => {
@@ -15,16 +16,48 @@ const TimesheetSummary: React.FC<Props> = ({ selectedDate }) => {
   const [isLoading, setIsLoading] = useState(true);
   const [isLocked, setIsLocked] = useState(false);
 
+  const { user } = useAuth();
+
   useEffect(() => {
-    setIsLoading(true);
-    fetch(`/api/timesheet/view?date=${selectedDate}`)
-      .then((res) => res.json())
-      .then((data) => {
-        setSummary(data.entries || []);
-        setIsLocked(data.isSubmitted || false);
+    const fetchSummary = async () => {
+      if (!user?.token) return;
+
+      setIsLoading(true);
+      try {
+        const { data } = await axios.get('/api/timesheets/my', {
+          headers: {
+            Authorization: `Bearer ${user.token}`,
+          },
+        });
+
+
+        let filtered = data;
+
+        // If selectedDate is passed, filter by it
+        if (selectedDate && selectedDate.trim() !== '') {
+          filtered = data.filter(
+            (t: any) => t.date && t.date.startsWith(selectedDate)
+          );
+        }
+
+        const mapped = filtered.map((t: any) => ({
+          taskTitle: t.task?.title || 'Unknown Task',
+          hours: t.actualHours || 0,
+        }));
+
+        setSummary(mapped);
+        setIsLocked(filtered.length > 0); // lock if any data exists for that filter
+      } catch (err) {
+        console.error(err);
+        setSummary([]);
+        setIsLocked(false);
+      } finally {
         setIsLoading(false);
-      });
-  }, [selectedDate]);
+      }
+    };
+
+    fetchSummary();
+  }, [selectedDate, user?.token]);
 
   if (isLoading) return <p>Loading summary...</p>;
 
@@ -33,13 +66,15 @@ const TimesheetSummary: React.FC<Props> = ({ selectedDate }) => {
       <h2 className="text-xl font-semibold mb-2">Submitted Timesheet</h2>
 
       {isLocked ? (
-        <p className="text-green-600 font-medium mb-2">Timesheet is submitted and locked.</p>
+        <p className="text-green-600 font-medium mb-2">
+          Timesheet is submitted and locked.
+        </p>
       ) : (
         <p className="text-yellow-600 mb-2">Timesheet not submitted yet.</p>
       )}
 
       {summary.length === 0 ? (
-        <p className="text-gray-500">No data for selected date.</p>
+        <p className="text-gray-500">No data {selectedDate ? `for ${selectedDate}` : 'available'}.</p>
       ) : (
         <ul className="space-y-2">
           {summary.map((entry, idx) => (

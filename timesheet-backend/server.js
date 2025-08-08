@@ -6,6 +6,7 @@ import connectDB from './config/db.js';
 import authRoutes from './routes/authRoutes.js';
 import taskRoutes from './routes/taskRoutes.js';
 import userRoutes from './routes/userRoutes.js';
+import timesheetRoutes from './routes/timesheetRoutes.js';
 
 dotenv.config();
 const app = express();
@@ -21,6 +22,7 @@ connectDB();
 app.use('/api/auth', authRoutes);
 app.use('/api/tasks', taskRoutes);
 app.use('/api/users', userRoutes);
+app.use('/api/timesheets', timesheetRoutes);
 
 // 404 Handler
 app.use((req, res) => {

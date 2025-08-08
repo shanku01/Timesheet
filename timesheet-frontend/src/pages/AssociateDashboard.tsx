@@ -1,96 +1,119 @@
-// src/pages/AssociateDashboard.tsx
 import React, { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import axios from 'axios';
 import { useAuth } from '../context/AuthContext';
-import TaskList from '../components/associate/TaskList';
-import TimesheetForm from '../components/associate/TimesheetForm';
+import { useNavigate } from 'react-router-dom';
+import TaskWithTimesheet from '../components/associate/TaskwithTimesheet';
 import TimesheetSummary from '../components/associate/TimesheetSummary';
 
 interface Task {
-  id: number;
+  _id: string;
   title: string;
-  description: string;
-  estimatedHours: number;
+  description?: string;
 }
 
 const AssociateDashboard: React.FC = () => {
+  const { user } = useAuth();
   const [tasks, setTasks] = useState<Task[]>([]);
-  const [filteredTasks, setFilteredTasks] = useState<Task[]>([]);
-  const [selectedDate, setSelectedDate] = useState<string>('');
-  const [isSubmitted, setIsSubmitted] = useState(false);
-  const [refreshSummary, setRefreshSummary] = useState(false);
-
+  const [selectedDate, setSelectedDate] = useState('');
   const { logout } = useAuth();
   const navigate = useNavigate();
 
-  const fetchTasks = async () => {
-    try {
-      const response = await fetch('/api/tasks');
-      const data = await response.json();
-      setTasks(data);
-    } catch (error) {
-      console.error('Error fetching tasks:', error);
-    }
-  };
-
   useEffect(() => {
     fetchTasks();
-  }, []);
+  }, [selectedDate]);
 
-  useEffect(() => {
-    if (selectedDate) {
-      // Replace this filter with a real one if tasks include date fields
-      setFilteredTasks(tasks); // for now, all tasks are shown
-    } else {
-      setFilteredTasks(tasks);
+  const fetchTasks = async () => {
+    try {
+      const res = await axios.get(
+        `/api/tasks/my?status=pending&date=${selectedDate}`,
+        { headers: { Authorization: `Bearer ${user?.token}` } }
+      );
+      setTasks(res.data);
+    } catch (err) {
+      console.error('Error fetching tasks', err);
     }
-  }, [selectedDate, tasks]);
-
-  const handleTimesheetSubmit = () => {
-    setIsSubmitted(true); // lock the form
-    setRefreshSummary((prev) => !prev);
   };
 
-  const handleLogout = () => {
-    logout();
-    navigate('/');
+  const handleTimesheetSubmit = async (taskId: string, hours: number) => {
+    try {
+      // Submit timesheet
+      await axios.post(
+        '/api/timesheets',
+        { taskId, hours, date: selectedDate },
+        { headers: { Authorization: `Bearer ${user?.token}` } }
+      );
+
+      // // Mark task as done
+      // await axios.put(
+      //   `/api/tasks/${taskId}/status`,
+      //   { status: 'done' },
+      //   { headers: { Authorization: `Bearer ${user?.token}` } }
+      // );
+
+      // fetchTasks();
+    } catch (err) {
+      console.error('Error submitting timesheet', err);
+    }
   };
 
   return (
-    <div className="max-w-3xl mx-auto p-6">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold">Associate Dashboard</h1>
+    <div className="min-h-screen bg-gray-50 p-6">
+      {/* Header */}
+
+      <div className="mb-6 flex items-center justify-between">
+        <h1 className="text-3xl font-bold text-gray-800">
+          Associate Dashboard
+        </h1>
         <button
-          onClick={handleLogout}
-          className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600"
+          onClick={() => {
+            logout();
+            navigate('/');
+          }}
+          className="bg-yellow-500 text-white font-bold px-4 py-2 rounded"
         >
           Logout
         </button>
       </div>
 
-      <div className="mb-4">
-        <label htmlFor="date" className="block text-sm font-medium mb-1">Select Date:</label>
+      {/* Date Filter */}
+      <div className="bg-white shadow rounded-lg p-4 mb-6 border border-gray-200">
+        <label className="block text-sm font-medium text-gray-700 mb-2">
+          Select Date
+        </label>
         <input
           type="date"
-          id="date"
           value={selectedDate}
           onChange={(e) => setSelectedDate(e.target.value)}
-          className="border px-3 py-2 rounded w-full"
+          className="border border-gray-300 rounded px-3 py-2 w-full max-w-xs focus:outline-none focus:ring-2 focus:ring-blue-500"
         />
       </div>
 
-      <TaskList tasks={filteredTasks} />
-      <TimesheetForm
-        tasks={filteredTasks}
-        onSubmit={handleTimesheetSubmit}
-        isSubmitted={isSubmitted}
-        selectedDate={selectedDate}
-      />
-      {refreshSummary ? (
-            <TimesheetSummary key="1" selectedDate={selectedDate} />
-            ) : (
-            <TimesheetSummary key="2" selectedDate={selectedDate} />
-            )}
+      {/* Task List */}
+      <div className="space-y-4">
+        {tasks.length > 0 ? (
+          tasks.map((task) => (
+            <div
+              key={task._id}
+              className="bg-white rounded-lg shadow border border-gray-200 p-4 hover:shadow-md transition"
+            >
+              <TaskWithTimesheet
+                task={task}
+                onSubmit={handleTimesheetSubmit}
+                selectedDate={selectedDate}
+              />
+            </div>
+          ))
+        ) : (
+          <div className="text-center py-6 bg-white rounded-lg shadow border border-gray-200">
+            <p className="text-gray-500">No pending tasks{selectedDate?" for "+selectedDate:""}.</p>
+          </div>
+        )}
+      </div>
+
+      {/* Timesheet Summary */}
+      <div className="mt-8 bg-white rounded-lg shadow border border-gray-200 p-4">
+        <TimesheetSummary selectedDate={selectedDate} />
+      </div>
     </div>
   );
 };
