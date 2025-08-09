@@ -1,7 +1,6 @@
-// controllers/userController.js
 import User from '../models/User.js';
 
-// Get all users (excluding managers optionally)
+
 export const getAllUsers = async (req, res) => {
   try {
     const users = await User.find({ role: 'employee' }).select('-password'); // hide password
@@ -11,7 +10,7 @@ export const getAllUsers = async (req, res) => {
   }
 };
 
-// Get user by ID
+
 export const getUserById = async (req, res) => {
   try {
     const user = await User.findById(req.params.id).select('-password');

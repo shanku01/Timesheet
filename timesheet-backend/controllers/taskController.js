@@ -1,6 +1,6 @@
 import Task from '../models/Task.js';
 
-// Add a new task
+
 export const createTask = async (req, res) => {
   try {
     const task = new Task(req.body);
@@ -11,19 +11,17 @@ export const createTask = async (req, res) => {
   }
 };
 
-// Get all tasks (manager view)
+
 export const getAllTasks = async (req, res) => {
-  console.log('Fetching all tasks');
   try {
     const tasks = await Task.find().populate('assignedTo assignedBy', 'name email');
-    console.log('Fetched tasks:', tasks);
     res.json(tasks);
   } catch (err) {
     res.status(500).json({ msg: 'Error fetching tasks' });
   }
 };
 
-// Get tasks assigned to a specific user, with optional filters
+
 export const getUserTasks = async (req, res) => {
   try {
     const { status, date } = req.query;
@@ -37,7 +35,6 @@ export const getUserTasks = async (req, res) => {
     }
 
     if (date) {
-      // Assuming your task schema has a date field of type Date
       const startOfDay = new Date(date);
       startOfDay.setHours(0, 0, 0, 0);
 
@@ -56,7 +53,7 @@ export const getUserTasks = async (req, res) => {
 };
 
 
-// Update task status or time
+
 export const updateTask = async (req, res) => {
   try {
     const task = await Task.findById(req.params.id);
@@ -64,15 +61,6 @@ export const updateTask = async (req, res) => {
       return res.status(404).json({ msg: 'Task not found' });
     }
 
-    // Authorization check
-    if (
-      req.user.role === 'associate' &&
-      task.assignedTo.toString() !== req.user._id.toString()
-    ) {
-      return res.status(403).json({ msg: 'Not authorized to update this task' });
-    }
-
-    // Update allowed fields only
     const allowedFields = ['title', 'description', 'status'];
     allowedFields.forEach((field) => {
       if (req.body[field]) {

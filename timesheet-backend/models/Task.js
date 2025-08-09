@@ -4,7 +4,7 @@ const taskSchema = new mongoose.Schema({
   title: { type: String, required: true },
   description: String,
   date: { type: Date, required: true },
-  timeSpent: { type: Number, required: true }, // in minutes or hours
+  timeSpent: { type: Number, required: true },
   status: {
     type: String,
     enum: ['pending', 'completed', 'in-progress'],

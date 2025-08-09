@@ -16,6 +16,11 @@ const timesheetSchema = new mongoose.Schema({
     required: true,
     min: [0, 'Actual hours cannot be negative'],
   },
+  estimatedHours: {
+    type: Number,
+    required: true,
+    min: [0, 'Actual hours cannot be negative'],
+  },
   date: {
     type: Date,
     required: true,
