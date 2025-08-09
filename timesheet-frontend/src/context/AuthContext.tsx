@@ -1,4 +1,3 @@
-// src/context/AuthContext.tsx
 import { createContext, useState, useContext, useEffect } from 'react';
 import type { ReactNode } from 'react';
 

@@ -59,7 +59,7 @@ const TaskForm = () => {
     fetchUsers();
   }, [user?.token]);
 
-  // createTask defined inside component to access user token
+
   const createTask = async (task: any) => {
     if (!user?.token) throw new Error('User not authenticated');
 

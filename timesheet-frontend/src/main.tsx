@@ -3,8 +3,8 @@ import ReactDOM from 'react-dom/client';
 import AppRoutes from './routes/AppRoutes';
 import { AuthProvider } from './context/AuthContext';
 import { ToastContainer } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css'; // import toast styles
-import './styles/input.css'; // your Tailwind build output
+import 'react-toastify/dist/ReactToastify.css'; 
+import './styles/input.css';
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>

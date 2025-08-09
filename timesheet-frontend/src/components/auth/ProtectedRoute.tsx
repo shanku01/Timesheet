@@ -1,4 +1,3 @@
-// src/components/auth/ProtectedRoute.tsx
 import { Navigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import type { JSX } from 'react';
@@ -12,7 +11,7 @@ const ProtectedRoute = ({
 }) => {
   const { user, loading } = useAuth();
 
-  if (loading) return <div>Loading...</div>; // or a spinner
+  if (loading) return <div>Loading...</div>;
   if (!user) return <Navigate to="/" />;
 
   if (!allowedRoles.includes(user.user.role)) return <Navigate to="*" />;

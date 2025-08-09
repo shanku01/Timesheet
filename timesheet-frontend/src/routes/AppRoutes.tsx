@@ -1,4 +1,3 @@
-// src/routes/AppRoutes.tsx
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import LoginPage from '../pages/LoginPage';
 import ManagerDashboard from '../pages/ManagerDashboard';
@@ -12,7 +11,6 @@ const AppRoutes = () => {
       <Routes>
         <Route path="/" element={<LoginPage />} />
 
-        {/* Manager-only */}
         <Route
           path="/manager/dashboard"
           element={
@@ -22,7 +20,6 @@ const AppRoutes = () => {
           }
         />
 
-        {/* Associate-only */}
         <Route
           path="/associate/dashboard"
           element={
@@ -32,7 +29,6 @@ const AppRoutes = () => {
           }
         />
 
-        {/* Catch-all */}
         <Route path="*" element={<NotFound />} />
       </Routes>
     </Router>

@@ -8,7 +8,7 @@ interface SummaryEntry {
 }
 
 interface Props {
-  selectedDate?: string; // optional now
+  selectedDate?: string;
 }
 
 const TimesheetSummary: React.FC<Props> = ({ selectedDate }) => {
@@ -33,7 +33,6 @@ const TimesheetSummary: React.FC<Props> = ({ selectedDate }) => {
 
         let filtered = data;
 
-        // If selectedDate is passed, filter by it
         if (selectedDate && selectedDate.trim() !== '') {
           filtered = data.filter(
             (t: any) => t.date && t.date.startsWith(selectedDate)
@@ -46,7 +45,7 @@ const TimesheetSummary: React.FC<Props> = ({ selectedDate }) => {
         }));
 
         setSummary(mapped);
-        setIsLocked(filtered.length > 0); // lock if any data exists for that filter
+        setIsLocked(filtered.length > 0);
       } catch (err) {
         console.error(err);
         setSummary([]);

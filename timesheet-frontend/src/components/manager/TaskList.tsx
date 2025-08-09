@@ -32,7 +32,6 @@ const TaskList = () => {
         Authorization: `Bearer ${user.token}`,
       },
     });
-    console.log('Fetched tasks:', response.data);
     return response.data;
   };
 
@@ -52,7 +51,6 @@ const TaskList = () => {
     loadTasks();
   }, [user?.token]);
 
-  // Memoize filtered tasks, recompute only when searchTerm or tasks changes
   const filteredTasks = useMemo(() => {
     const search = searchTerm.toLowerCase().trim();
     if (!search) return tasks;
@@ -70,10 +68,9 @@ const TaskList = () => {
     });
   }, [searchTerm, tasks]);
 
-  console.log('Filtered Tasks:', filteredTasks);
 
   return (
-    <div className="bg-white p-6 rounded-lg shadow-lg max-w-5xl mx-auto">
+    <div className="bg-white p-6 rounded-lg shadow-lg max-w mx-auto">
     <h2 className="text-2xl font-semibold mb-6 border-b pb-2">Assigned Tasks</h2>
 
     <input

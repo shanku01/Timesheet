@@ -1,4 +1,3 @@
-// src/pages/LoginPage.tsx
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
@@ -17,7 +16,7 @@ const LoginPage = () => {
 
     try {
       const user = await loginUser(email, password);
-      login(user); // sets context
+      login(user); 
       if (user.user.role === 'manager') navigate('/manager/dashboard');
       else navigate('/associate/dashboard');
     } catch (err) {

@@ -1,9 +1,9 @@
-// src/pages/ManagerDashboard.tsx
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import TaskForm from '../components/manager/TaskForm';
 import TaskList from '../components/manager/TaskList';
 import ErrorBoundary from '../components/manager/ErrorBoundary';
+import TimesheetSummary from '../components/manager/TimesheetSummary';
 
 const ManagerDashboard = () => {
   const { logout } = useAuth();
@@ -27,6 +27,7 @@ const ManagerDashboard = () => {
       <TaskForm />
       <ErrorBoundary>
         <TaskList />
+        <TimesheetSummary />
       </ErrorBoundary>
     </div>
   );

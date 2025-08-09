@@ -36,29 +36,31 @@ const AssociateDashboard: React.FC = () => {
 
   const handleTimesheetSubmit = async (taskId: string, hours: number) => {
     try {
-      // Submit timesheet
+      const today = new Date().toISOString().split("T")[0];
+
       await axios.post(
-        '/api/timesheets',
-        { taskId, hours, date: selectedDate },
-        { headers: { Authorization: `Bearer ${user?.token}` } }
+        "/api/timesheets",
+        {
+          taskId,
+          actualHours: hours,
+          date: today, 
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${user?.token}`,
+          },
+        }
       );
-
-      // // Mark task as done
-      // await axios.put(
-      //   `/api/tasks/${taskId}/status`,
-      //   { status: 'done' },
-      //   { headers: { Authorization: `Bearer ${user?.token}` } }
-      // );
-
-      // fetchTasks();
+      window.location.reload();
+      fetchTasks();
     } catch (err) {
-      console.error('Error submitting timesheet', err);
+      console.error("Error submitting timesheet", err);
     }
   };
 
+
   return (
     <div className="min-h-screen bg-gray-50 p-6">
-      {/* Header */}
 
       <div className="mb-6 flex items-center justify-between">
         <h1 className="text-3xl font-bold text-gray-800">
@@ -75,7 +77,7 @@ const AssociateDashboard: React.FC = () => {
         </button>
       </div>
 
-      {/* Date Filter */}
+    
       <div className="bg-white shadow rounded-lg p-4 mb-6 border border-gray-200">
         <label className="block text-sm font-medium text-gray-700 mb-2">
           Select Date
@@ -88,7 +90,6 @@ const AssociateDashboard: React.FC = () => {
         />
       </div>
 
-      {/* Task List */}
       <div className="space-y-4">
         {tasks.length > 0 ? (
           tasks.map((task) => (
@@ -110,7 +111,7 @@ const AssociateDashboard: React.FC = () => {
         )}
       </div>
 
-      {/* Timesheet Summary */}
+      
       <div className="mt-8 bg-white rounded-lg shadow border border-gray-200 p-4">
         <TimesheetSummary selectedDate={selectedDate} />
       </div>
